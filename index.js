@@ -1,3 +1,22 @@
+const express = require("express");
+const http = require("http");
+const cors = require("cors");
+const { Server } = require("socket.io");
+
+// Setup express app
+const app = express();
+app.use(cors());
+
+// Create HTTP server and Socket.IO server
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "https://your-frontend.onrender.com", // <-- update this with your frontend Render URL
+    methods: ["GET", "POST"],
+  },
+});
+
+// Your socket code goes below
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -25,7 +44,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", () => {
-    socket.broadcast.to(socket.data.room).emit("user-typing", socket.data.username);
+    socket.broadcast
+      .to(socket.data.room)
+      .emit("user-typing", socket.data.username);
   });
 
   socket.on("send-file", ({ fileName, fileData }) => {
@@ -45,4 +66,10 @@ io.on("connection", (socket) => {
       time,
     });
   });
+});
+
+// ✅ Start the server (important for Render)
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
